@@ -67,4 +67,5 @@ Performance Optimizations: Efficient DOM manipulation and event handling
 
 Scalable Architecture: Component structure that could easily integrate with frameworks
 
-
+#OUTPUT
+<img width="1919" height="930" alt="Image" src="https://github.com/user-attachments/assets/401c473a-94f6-49f4-9f82-96e8b9b5166b" />
