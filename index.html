@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4ade80;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray: #6c757d;
+            --border-radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            height: 90vh;
+            background: rgba(25, 25, 45, 0.9);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Header Styles */
+        header {
+            background: rgba(15, 15, 35, 0.95);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            padding: 8px 15px;
+            background: rgba(67, 97, 238, 0.15);
+            border-radius: 20px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--success);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: rgba(20, 20, 40, 0.85);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-list {
+            list-style: none;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .user-item:hover {
+            background: rgba(67, 97, 238, 0.15);
+        }
+
+        .user-item.active {
+            background: rgba(67, 97, 238, 0.25);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .user-info h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .user-info p {
+            font-size: 13px;
+            color: #a0a0c0;
+        }
+
+        .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        .online {
+            background-color: var(--success);
+        }
+
+        .offline {
+            background-color: var(--gray);
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: rgba(25, 25, 45, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f72585, #7209b7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 20px;
+        }
+
+        .chat-header-info h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header-info p {
+            font-size: 14px;
+            color: #a0a0c0;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: url('https://www.transparenttextures.com/patterns/dark-fish-skin.png');
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 15px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .received {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+        }
+
+        .sent {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-bottom-right-radius: 5px;
+            align-self: flex-end;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .sender-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .message-content {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .typing-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 20px;
+            align-self: flex-start;
+            display: inline-flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.3s linear infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: rgba(15, 15, 35, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 15px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 30px;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .message-input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.5);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+
+        .action-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: var(--accent);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .action-button:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                height: 95vh;
+            }
+            
+            .sidebar {
+                width: 250px;
+            }
+            
+            .message {
+                max-width: 80%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .sidebar {
+                position: absolute;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                transition: var(--transition);
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-comments"></i>
+                <span>WebSocket Chat</span>
+            </div>
+            <div class="connection-status">
+                <div class="status-indicator"></div>
+                <span>Connected</span>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title"><i class="fas fa-user-friends"></i> Active Conversations</h3>
+                    <ul class="user-list">
+                        <li class="user-item active">
+                            <div class="user-avatar">AJ</div>
+                            <div class="user-info">
+                                <h3>Alex Johnson</h3>
+                                <p>Online</p>
+                            </div>
+                            <div class="status online"></div>
+                        </li>
+                        <li class="user-item">
+                            <div class="user-avatar">MS</div>
+                            <div class="user-info">
+                                <h3>Maria Smith</h3>
+                                <p>Last seen 2h ago</p>
+                            </div>
+                            <div class="status offline"></div>
+                        </li>
+                        <li class="user-item">
+                            <div class="user-avatar">DT</div>
+                            <div class="user-info">
+                                <h3>David Taylor</h3>
+                                <p>Online</p>
+                            </div>
+                            <div class="status online"></div>
+                        </li>
+                        <li class="user-item">
+                            <div class="user-avatar">SP</div>
+                            <div class="user-info">
+                                <h3>Sarah Parker</h3>
+                                <p>Last seen 5m ago</p>
+                            </div>
+                            <div class="status offline"></div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title"><i class="fas fa-users"></i> Group Chats</h3>
+                    <ul class="user-list">
+                        <li class="user-item">
+                            <div class="user-avatar" style="background: linear-gradient(45deg, #f72585, #7209b7);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="user-info">
+                                <h3>Web Dev Team</h3>
+                                <p>You: See you tomorrow!</p>
+                            </div>
+                        </li>
+                        <li class="user-item">
+                            <div class="user-avatar" style="background: linear-gradient(45deg, #ff9a00, #ff3300);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="user-info">
+                                <h3>Design Crew</h3>
+                                <p>Maria: New mockups are ready</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="chat-area">
+                <div class="chat-header">
+                    <button class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="chat-header-avatar">AJ</div>
+                    <div class="chat-header-info">
+                        <h2>Alex Johnson</h2>
+                        <p>Online - WebSocket connection active</p>
+                    </div>
+                </div>
+                
+                <div class="messages-container" id="messagesContainer">
+                    <div class="timestamp">Today</div>
+                    
+                    <div class="message received">
+                        <div class="message-header">
+                            <div class="sender-name">Alex Johnson</div>
+                            <div class="message-time">10:15 AM</div>
+                        </div>
+                        <div class="message-content">Hey there! How's the project going?</div>
+                    </div>
+                    
+                    <div class="message sent">
+                        <div class="message-header">
+                            <div class="sender-name">You</div>
+                            <div class="message-time">10:17 AM</div>
+                        </div>
+                        <div class="message-content">It's going well! I just finished the WebSocket implementation for our chat feature.</div>
+                    </div>
+                    
+                    <div class="message received">
+                        <div class="message-header">
+                            <div class="sender-name">Alex Johnson</div>
+                            <div class="message-time">10:18 AM</div>
+                        </div>
+                        <div class="message-content">That's great! How does the real-time functionality work? Is there any noticeable delay?</div>
+                    </div>
+                    
+                    <div class="message sent">
+                        <div class="message-header">
+                            <div class="sender-name">You</div>
+                            <div class="message-time">10:20 AM</div>
+                        </div>
+                        <div class="message-content">It's almost instantaneous. WebSockets maintain a persistent connection, so messages are delivered in real-time with minimal latency.</div>
+                    </div>
+                    
+                    <div class="message received">
+                        <div class="message-header">
+                            <div class="sender-name">Alex Johnson</div>
+                            <div class="message-time">10:21 AM</div>
+                        </div>
+                        <div class="message-content">Impressive! Have you implemented message history as well?</div>
+                    </div>
+                    
+                    <div class="message sent">
+                        <div class="message-header">
+                            <div class="sender-name">You</div>
+                            <div class="message-time">10:23 AM</div>
+                        </div>
+                        <div class="message-content">Yes, the chat stores the last 100 messages per conversation and can load more when scrolling up.</div>
+                    </div>
+                    
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        Alex is typing...
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <button class="action-button">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input type="text" class="message-input" id="messageInput" placeholder="Type your message...">
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.querySelector('.typing-indicator');
+            
+            // Scroll to bottom of messages
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Simulate WebSocket connection
+            const simulateWebSocket = {
+                connection: null,
+                connect: function() {
+                    console.log('WebSocket connecting...');
+                    setTimeout(() => {
+                        console.log('WebSocket connected!');
+                        this.connection = { readyState: 1 };
+                    }, 500);
+                },
+                send: function(message) {
+                    if (this.connection && this.connection.readyState === 1) {
+                        console.log('Sending message:', message);
+                        return true;
+                    }
+                    return false;
+                },
+                close: function() {
+                    console.log('WebSocket closing...');
+                    this.connection = null;
+                }
+            };
+            
+            // Initialize WebSocket
+            simulateWebSocket.connect();
+            
+            // Send message function
+            function sendMessage() {
+                const messageText = messageInput.value.trim();
+                if (messageText) {
+                    // Simulate sending via WebSocket
+                    if (simulateWebSocket.send(messageText)) {
+                        // Add message to UI
+                        const now = new Date();
+                        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        
+                        const messageElement = document.createElement('div');
+                        messageElement.className = 'message sent';
+                        messageElement.innerHTML = `
+                            <div class="message-header">
+                                <div class="sender-name">You</div>
+                                <div class="message-time">${timeString}</div>
+                            </div>
+                            <div class="message-content">${messageText}</div>
+                        `;
+                        
+                        messagesContainer.appendChild(messageElement);
+                        messageInput.value = '';
+                        
+                        // Scroll to bottom
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        
+                        // Simulate response
+                        typingIndicator.style.display = 'flex';
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        
+                        setTimeout(() => {
+                            typingIndicator.style.display = 'none';
+                            
+                            const responses = [
+                                "Thanks for the info! How are you handling message persistence?",
+                                "I see. What about security? Are you using WSS?",
+                                "Interesting! What's the backend technology?",
+                                "That makes sense. How does it handle disconnections?",
+                                "Great! When can we integrate this into our main app?"
+                            ];
+                            
+                            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                            const responseTime = new Date(now.getTime() + 10000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            
+                            const responseElement = document.createElement('div');
+                            responseElement.className = 'message received';
+                            responseElement.innerHTML = `
+                                <div class="message-header">
+                                    <div class="sender-name">Alex Johnson</div>
+                                    <div class="message-time">${responseTime}</div>
+                                </div>
+                                <div class="message-content">${randomResponse}</div>
+                            `;
+                            
+                            messagesContainer.appendChild(responseElement);
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }, 3000);
+                    }
+                }
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Mobile menu toggle
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const sidebar = document.querySelector('.sidebar');
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            // Simulate initial typing indicator
+            setTimeout(() => {
+                typingIndicator.style.display = 'flex';
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                setTimeout(() => {
+                    typingIndicator.style.display = 'none';
+                }, 2500);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
